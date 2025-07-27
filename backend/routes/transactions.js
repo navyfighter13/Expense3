@@ -6,6 +6,18 @@ const fs = require('fs');
 const multer = require('multer');
 const path = require('path');
 const moment = require('moment');
+const {
+  authenticateToken,
+  getUserCompanies,
+  requireCompanyAccess,
+  addUserTracking
+} = require('../middleware/auth');
+
+// Apply authentication and company context middleware to all routes
+router.use(authenticateToken);
+router.use(getUserCompanies);
+router.use(requireCompanyAccess);
+router.use(addUserTracking);
 
 // Configure multer for CSV file uploads
 const csvStorage = multer.diskStorage({
@@ -247,32 +259,36 @@ router.post('/import', csvUpload.single('csvFile'), (req, res) => {
       const chaseTransactionId = `${transactionDate}_${description}_${Math.abs(amount)}`.replace(/[^a-zA-Z0-9]/g, '_');
 
       transactions.push({
+        company_id: req.companyId,
         transaction_date: transactionDate,
         description: description,
         amount: amount,
         category: category,
         chase_transaction_id: chaseTransactionId,
         external_transaction_id: externalTransactionId,
-        sales_tax: salesTax
+        sales_tax: salesTax,
+        created_by: req.userId
       });
     })
     .on('end', () => {
       // Insert transactions into database
       const stmt = db.prepare(`
-        INSERT OR IGNORE INTO transactions 
-        (transaction_date, description, amount, category, chase_transaction_id, external_transaction_id, sales_tax)
-        VALUES (?, ?, ?, ?, ?, ?, ?)
+        INSERT OR IGNORE INTO transactions
+        (company_id, transaction_date, description, amount, category, chase_transaction_id, external_transaction_id, sales_tax, created_by)
+        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)
       `);
 
       transactions.forEach((transaction) => {
         stmt.run([
+          transaction.company_id,
           transaction.transaction_date,
           transaction.description,
           transaction.amount,
           transaction.category,
           transaction.chase_transaction_id,
           transaction.external_transaction_id,
-          transaction.sales_tax
+          transaction.sales_tax,
+          transaction.created_by
         ], function(err) {
           if (err) {
             console.error('Error inserting transaction:', err);
@@ -313,12 +329,12 @@ router.put('/:id', (req, res) => {
   const { description, amount, category } = req.body;
   
   const query = `
-    UPDATE transactions 
+    UPDATE transactions
     SET description = ?, amount = ?, category = ?, updated_at = CURRENT_TIMESTAMP
-    WHERE id = ?
+    WHERE id = ? AND company_id = ?
   `;
 
-  db.run(query, [description, amount, category, req.params.id], function(err) {
+  db.run(query, [description, amount, category, req.params.id, req.companyId], function(err) {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
@@ -331,7 +347,7 @@ router.put('/:id', (req, res) => {
 
 // Delete transaction
 router.delete('/:id', (req, res) => {
-  db.run('DELETE FROM transactions WHERE id = ?', [req.params.id], function(err) {
+  db.run('DELETE FROM transactions WHERE id = ? AND company_id = ?', [req.params.id, req.companyId], function(err) {
     if (err) {
       return res.status(500).json({ error: err.message });
     }

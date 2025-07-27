@@ -20,6 +20,7 @@ import ImportTransactions from './pages/ImportTransactions';
 import Exports from './pages/Exports';
 import Profile from './pages/Profile';
 import CompanySettings from './pages/CompanySettings';
+import UserReceipts from './pages/UserReceipts';
 
 function App() {
   return (
@@ -45,6 +46,7 @@ function App() {
                     <Route path="/exports" element={<Exports />} />
                     <Route path="/profile" element={<Profile />} />
                     <Route path="/company-settings" element={<CompanySettings />} />
+                    <Route path="/team/:userId/receipts" element={<UserReceipts />} />
                   </Routes>
                 </main>
               </div>

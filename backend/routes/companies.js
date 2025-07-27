@@ -315,6 +315,36 @@ router.delete('/:id/users/:userId', requireCompanyAccess, requireRole('admin'), 
   });
 });
 
+// Get receipts uploaded by a specific user (admin/manager only)
+router.get('/:id/users/:userId/receipts', requireCompanyAccess, requireRole('manager'), (req, res) => {
+  const companyId = parseInt(req.params.id);
+  const userId = parseInt(req.params.userId);
+
+  // Verify user has access to this company
+  if (req.user.currentCompany.id !== companyId) {
+    return res.status(403).json({ error: 'Access denied to this company' });
+  }
+
+  const query = `
+    SELECT r.*, COUNT(m.id) as match_count, GROUP_CONCAT(t.description) as matched_transactions
+    FROM receipts r
+    LEFT JOIN matches m ON r.id = m.receipt_id AND m.user_confirmed = 1
+    LEFT JOIN transactions t ON m.transaction_id = t.id
+    WHERE r.company_id = ? AND r.created_by = ?
+    GROUP BY r.id
+    ORDER BY r.upload_date DESC
+  `;
+
+  db.all(query, [companyId, userId], (err, rows) => {
+    if (err) {
+      console.error('Error fetching user receipts:', err);
+      return res.status(500).json({ error: 'Failed to fetch user receipts' });
+    }
+
+    res.json({ receipts: rows });
+  });
+});
+
 // Create new company (authenticated users)
 router.post('/', (req, res) => {
   const { name, domain } = req.body;

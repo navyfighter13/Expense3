@@ -203,37 +203,6 @@ Multiple extraction strategies in priority order:
 - `PUT /api/matches/:id` - Update match status
 - `DELETE /api/matches/:id` - Delete match
 
-### Companies
-
-- `GET /api/companies/:companyId/users/:userId/receipts` - List receipts uploaded by a specific user in the company
-
-#### Auth
-
-- Requires `Authorization: Bearer <token>` header
-- Requires `x-company-id` header matching `:companyId`
-- User must have the `manager` role or higher in the company
-
-#### Parameters
-
-- `companyId` – ID of the company (path or `x-company-id`)
-- `userId` – ID of the user whose receipts are requested
-
-#### Response
-
-```
-{
-  "receipts": [
-    {
-      "id": 1,
-      "original_filename": "example.jpg",
-      "upload_date": "2025-07-26T12:34:56Z",
-      "match_count": 2,
-      "matched_transactions": "Coffee Shop, Office Supplies",
-      ...
-    }
-  ]
-}
-```
 
 ## Contributing
 

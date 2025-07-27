@@ -19,7 +19,8 @@ const UserReceipts = () => {
         setReceipts(res.data.receipts || []);
       } catch (err) {
         console.error('Error loading user receipts:', err);
-        toast.error('Failed to load user receipts');
+        const message = err.response?.data?.error || 'Failed to load user receipts';
+        toast.error(message);
       } finally {
         setLoading(false);
       }

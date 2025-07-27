@@ -173,7 +173,7 @@ router.get('/pending', (req, res) => {
 // Find matches for a specific receipt
 router.post('/find/:receiptId', (req, res) => {
   // Get receipt details
-  db.get('SELECT * FROM receipts WHERE id = ?', [req.params.receiptId], (err, receipt) => {
+  db.get('SELECT * FROM receipts WHERE id = ? AND company_id = ?', [req.params.receiptId, req.companyId], (err, receipt) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
@@ -186,12 +186,12 @@ router.post('/find/:receiptId', (req, res) => {
       SELECT t.* FROM transactions t
       WHERE t.id NOT IN (
         SELECT transaction_id FROM matches WHERE user_confirmed = 1
-      )
+      ) AND t.company_id = ?
       ORDER BY t.transaction_date DESC
       LIMIT 100
     `;
 
-    db.all(transactionQuery, [], (err, transactions) => {
+    db.all(transactionQuery, [req.companyId], (err, transactions) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }
@@ -302,9 +302,10 @@ router.post('/auto-match', (req, res) => {
     )
     AND r.processing_status = 'completed'
     AND r.extracted_amount IS NOT NULL
+    AND r.company_id = ?
   `;
 
-  db.all(receiptQuery, [], (err, receipts) => {
+  db.all(receiptQuery, [req.companyId], (err, receipts) => {
     if (err) {
       return res.status(500).json({ error: err.message });
     }
@@ -315,9 +316,10 @@ router.post('/auto-match', (req, res) => {
       WHERE t.id NOT IN (
         SELECT transaction_id FROM matches WHERE user_confirmed = 1
       )
+      AND t.company_id = ?
     `;
 
-    db.all(transactionQuery, [], (err, transactions) => {
+    db.all(transactionQuery, [req.companyId], (err, transactions) => {
       if (err) {
         return res.status(500).json({ error: err.message });
       }

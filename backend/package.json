@@ -7,7 +7,8 @@
     "start": "node server.js",
     "dev": "nodemon server.js",
     "create-admin": "node create-admin-user.js",
-    "setup": "node create-admin-user.js"
+    "setup": "node create-admin-user.js",
+    "test": "jest"
   },
   "dependencies": {
     "archiver": "^7.0.1",
@@ -33,6 +34,7 @@
     "uuid": "^9.0.1"
   },
   "devDependencies": {
+    "jest": "^30.0.5",
     "nodemon": "^3.0.1"
   }
 }

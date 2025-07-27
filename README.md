@@ -203,9 +203,6 @@ Multiple extraction strategies in priority order:
 - `PUT /api/matches/:id` - Update match status
 - `DELETE /api/matches/:id` - Delete match
 
-## Login Rate Limit
-
-The authentication endpoints are rate limited in `backend/routes/auth.js`. Each IP may attempt to log in or register only five times every 15 minutes. If you hit this limit, wait for the window to reset or adjust the `authLimiter` values (`max` and `windowMs`) in that file.
 
 ## Contributing
 

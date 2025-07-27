@@ -120,24 +120,24 @@ const findPotentialMatches = (receipt, transactions) => {
 const triggerAutoMatchForReceipt = (receiptId) => {
   console.log(`Triggering auto-match for receipt ${receiptId}`);
   
-  // Get receipt details
+  // Get receipt details to determine company context
   db.get('SELECT * FROM receipts WHERE id = ?', [receiptId], (err, receipt) => {
     if (err || !receipt) {
       console.error('Error getting receipt for auto-match:', err);
       return;
     }
 
-    // Get unmatched transactions
+    // Get unmatched transactions belonging to the same company
     const transactionQuery = `
       SELECT t.* FROM transactions t
       WHERE t.id NOT IN (
         SELECT transaction_id FROM matches WHERE user_confirmed = 1
-      )
+      ) AND t.company_id = ?
       ORDER BY t.transaction_date DESC
       LIMIT 100
     `;
 
-    db.all(transactionQuery, [], (err, transactions) => {
+    db.all(transactionQuery, [receipt.company_id], (err, transactions) => {
       if (err) {
         console.error('Error getting transactions for auto-match:', err);
         return;

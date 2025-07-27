@@ -1,4 +1,5 @@
 import React, { useState, useEffect, useCallback } from 'react';
+import { Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../contexts/AuthContext';
 import { api } from '../services/api';
@@ -345,6 +346,7 @@ const CompanySettings = () => {
                     <th>Role</th>
                     <th>Joined</th>
                     <th>Last Login</th>
+                    <th>Receipts</th>
                     {currentCompany?.role === 'admin' && <th>Actions</th>}
                   </tr>
                 </thead>
@@ -379,6 +381,11 @@ const CompanySettings = () => {
                       </td>
                       <td>{formatDate(member.joinedAt)}</td>
                       <td>{formatDate(member.lastLogin)}</td>
+                      <td>
+                        <Link to={`/team/${member.id}/receipts`} className="btn btn-sm">
+                          View
+                        </Link>
+                      </td>
                       {currentCompany?.role === 'admin' && (
                         <td>
                           {member.id !== user.id && (
